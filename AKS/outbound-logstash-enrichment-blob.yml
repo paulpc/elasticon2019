@@ -1,0 +1,85 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: logstash-outbound-enrich
+  labels:
+    app: logstash-outbound-enrich
+spec:
+  serviceName: logstash-outbound-enrich
+  replicas: 1
+  selector:
+    matchLabels:
+      app: logstash-outbound-enrich
+  template:
+    metadata:
+      labels:
+        app: logstash-outbound-enrich
+    spec:
+      containers:
+      - name: logstash
+        image: p4ulpc/logstash-outbound:6.5.4
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: "4"
+            memory: 8Gi
+          limits:
+            cpu: "4"
+            memory: 8Gi
+        env:
+        - name: XPACK_MANAGEMENT_ENABLED
+          value: "true"
+        - name: XPACK_MANAGEMENT_PIPELINE_ID
+          value: "output-logstash-v2"
+        - name: XPACK_MANAGEMENT_ELASTICSEARCH_URL
+          valueFrom:
+            secretKeyRef:
+              key: xpack_management_elasticsearch_url
+              name: logstash-azure-store
+        - name: XPACK_MONITORING_ELASTICSEARCH_URL
+          valueFrom:
+            secretKeyRef:
+              key: xpack_monitoring_elasticsearch_url
+              name: logstash-azure-store
+        - name: XPACK_MANAGEMENT_ELASTICSEARCH_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: xpack_management_elasticsearch_username
+              name: logstash-azure-store
+        - name: XPACK_MONITORING_ELASTICSEARCH_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: xpack_monitoring_elasticsearch_username
+              name: logstash-azure-store
+        - name: XPACK_MANAGEMENT_ELASTICSEARCH_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: xpack_management_elasticsearch_password
+              name: logstash-azure-store
+        - name: XPACK_MONITORING_ELASTICSEARCH_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: xpack_monitoring_elasticsearch_password
+              name: logstash-azure-store
+        volumeMounts:
+        - name: azure
+          mountPath: /enrichment
+        - name: blob-temp
+          mountPath: /blobtemp
+      securityContext:
+        fsGroup: 1000
+      volumes:
+      - name: azure
+        azureFile:
+          secretName: azure-secret
+          shareName: enrichment
+          readOnly: true
+  volumeClaimTemplates:
+  - metadata:
+      name: blob-temp
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 64Gi

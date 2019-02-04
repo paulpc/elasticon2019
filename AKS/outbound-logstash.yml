@@ -1,0 +1,64 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: logstash-outbound
+  labels:
+    app: logstash-outbound
+spec:
+  serviceName: logstash-outbound
+  replicas: 1
+  selector:
+    matchLabels:
+      app: logstash-outbound
+  template:
+    metadata:
+      labels:
+        app: logstash-outbound
+    spec:
+      containers:
+      - name: logstash
+        image: p4ulpc/logstash-outbound:6.5.4
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: "4"
+            memory: 8Gi
+          limits:
+            cpu: "4"
+            memory: 8Gi
+        env:
+        - name: XPACK_MANAGEMENT_ENABLED
+          value: "true"
+        - name: XPACK_MANAGEMENT_PIPELINE_ID
+          value: "pipeline-name_here"
+        - name: XPACK_MANAGEMENT_ELASTICSEARCH_URL
+          valueFrom:
+            secretKeyRef:
+              key: xpack_management_elasticsearch_url
+              name: logstash-secret
+        - name: XPACK_MONITORING_ELASTICSEARCH_URL
+          valueFrom:
+            secretKeyRef:
+              key: xpack_monitoring_elasticsearch_url
+              name: logstash-secret
+        - name: XPACK_MANAGEMENT_ELASTICSEARCH_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: xpack_management_elasticsearch_username
+              name: logstash-secret
+        - name: XPACK_MONITORING_ELASTICSEARCH_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: xpack_monitoring_elasticsearch_username
+              name: logstash-secret
+        - name: XPACK_MANAGEMENT_ELASTICSEARCH_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: xpack_management_elasticsearch_password
+              name: logstash-secret
+        - name: XPACK_MONITORING_ELASTICSEARCH_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: xpack_monitoring_elasticsearch_password
+              name: logstash-secret

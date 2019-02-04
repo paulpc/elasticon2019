@@ -1,0 +1,45 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: ecehealthchecks
+spec:
+  concurrencyPolicy: Forbid
+  schedule: "*/5 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          priorityClassName: low-priority
+          containers:
+          - name: ecehealthchecks
+            image: your-acr-repo
+            imagePullPolicy: Always
+            env:
+              - name: APPID
+                valueFrom:
+                  secretKeyRef:
+                    name: ece-health-secret
+                    key: appid
+              - name: APPKEY
+                valueFrom:
+                  secretKeyRef:
+                    name: ece-health-secret
+                    key: key
+              - name: RESOURCE
+                valueFrom:
+                  secretKeyRef:
+                    name: ece-health-secret
+                    key: resource
+              - name: TENANT
+                valueFrom:
+                  secretKeyRef:
+                    name: ece-health-secret
+                    key: tenant
+              - name: VAULT
+                valueFrom:
+                  secretKeyRef:
+                    name: ece-health-secret
+                    key: vault
+          securityContext:
+            runAsUser: 1000
+          restartPolicy: Never
