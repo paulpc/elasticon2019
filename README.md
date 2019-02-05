@@ -7,3 +7,4 @@ What you'll find in here:
 - pipelines - ideas on enriching data
 - healthcheck - python to check on your ECE cluster
 
+A copy of our presentation is also here under elastic.on-devon.pdf. Check it out
